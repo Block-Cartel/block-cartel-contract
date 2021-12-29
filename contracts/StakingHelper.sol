@@ -25,11 +25,10 @@ contract StakingHelper {
     function stake(
         uint256 _amount,
         address recipient,
-        bool _isFee
     ) external {
         IERC20(BLOCKS).transferFrom(msg.sender, address(this), _amount);
         IERC20(BLOCKS).approve(staking, _amount);
-        IStaking(staking).stake(recipient, _amount, _isFee);
+        IStaking(staking).stake(recipient, _amount);
         IStaking(staking).claim(recipient, true);
     }
 }

@@ -104,7 +104,7 @@ contract BondTeller is ITeller, BLOCKSAccessControlled {
         treasury.mint(address(this), _payout.add(reward));
 
         BLOCKS.approve(address(stakingHelper), _payout);
-        stakingHelper.stake(_payout, address(this), false);
+        stakingHelper.stake(_payout, address(this));
 
         FERs[_feo] = FERs[_feo].add(reward); // front end operator reward
 

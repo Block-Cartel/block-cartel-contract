@@ -13,7 +13,6 @@ import "./interfaces/IBLOCKS.sol";
 import "./interfaces/IsBLOCKS.sol";
 import "./interfaces/IDistributor.sol";
 import "./interfaces/IWarmup.sol";
-import "./interfaces/ITaxHelperV2.sol";
 
 import "./types/BLOCKSAccessControlled.sol";
 
@@ -52,7 +51,6 @@ contract BLOCKSStaking is BLOCKSAccessControlled {
 
     IBLOCKS public immutable BLOCKS;
     IsBLOCKS public immutable sBLOCKS;
-    address private TaxHelperV2;
 
     address private distributor;
 
@@ -97,23 +95,11 @@ contract BLOCKSStaking is BLOCKSAccessControlled {
      */
     function stake(
         address _to,
-        uint256 _amount,
-        bool isFee
+        uint256 _amount
     ) external returns ( uint256 ) {
         rebase();
 
         BLOCKS.safeTransferFrom( msg.sender, address(this), _amount );
-
-        if (isFee) {
-            uint256 cal_entry_tax;
-
-            cal_entry_tax = ITaxHelperV2(TaxHelperV2).calcTotalTax(_amount, _to, epoch.number, 1);
-            BLOCKS.safeTransfer(address(TaxHelperV2), cal_entry_tax);
-
-            ITaxHelperV2(TaxHelperV2).processEntityTax();
-
-            _amount = _amount.sub(cal_entry_tax);
-        }
 
         Claim memory info = warmupInfo[_to];
         require( !info.lock, "Deposits for account are locked" );
@@ -161,8 +147,6 @@ contract BLOCKSStaking is BLOCKSAccessControlled {
         IWarmup( warmupContract ).retrieve( address(this), sBLOCKS.balanceForGons( info.gons ) );
         BLOCKS.safeTransfer( msg.sender, info.deposit );
 
-        ITaxHelperV2(TaxHelperV2).removeTaxTracker(msg.sender);
-
         return info.deposit;
     }
 
@@ -196,13 +180,6 @@ contract BLOCKSStaking is BLOCKSAccessControlled {
             sBLOCKS.safeTransferFrom( msg.sender, address(this), _amount );
         } else {
         }
-
-        uint256 cal_exit_tax;
-
-        cal_exit_tax = ITaxHelperV2(TaxHelperV2).calcTotalTax(_amount, _to, epoch.number, 0);
-        BLOCKS.safeTransfer(address(TaxHelperV2), cal_exit_tax);
-
-        _amount = _amount.sub(cal_exit_tax);
 
         BLOCKS.safeTransfer( _to, _amount );
 
@@ -286,7 +263,7 @@ contract BLOCKSStaking is BLOCKSAccessControlled {
 
     /* ========== MANAGERIAL FUNCTIONS ========== */
 
-    enum CONTRACTS { DISTRIBUTOR, WARMUP, TAXHELPERV2 }
+    enum CONTRACTS { DISTRIBUTOR, WARMUP }
 
     /**
         @notice sets the contract address for LP staking
@@ -299,10 +276,7 @@ contract BLOCKSStaking is BLOCKSAccessControlled {
         } else if ( _contract == CONTRACTS.WARMUP ) { // 1
             require( warmupContract == address( 0 ), "Warmup cannot be set more than once" );
             warmupContract = _address;
-        } else if ( _contract == CONTRACTS.TAXHELPERV2 ) { // 2
-            require( _address != address(0), "Zero address: TaxHelperV2" );
-            TaxHelperV2 = _address;
-        }
+        } 
     }
 
     /**
@@ -312,9 +286,5 @@ contract BLOCKSStaking is BLOCKSAccessControlled {
     function setWarmupLength(uint256 _warmupPeriod) external onlyGovernor {
         warmupPeriod = _warmupPeriod;
         emit WarmupSet(_warmupPeriod);
-    }
-
-    function approveTax() external onlyGovernor {
-        BLOCKS.approve(address(TaxHelperV2), 100000000 * 1e18);
     }
 }
