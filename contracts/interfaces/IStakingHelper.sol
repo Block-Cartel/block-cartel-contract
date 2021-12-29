@@ -2,5 +2,5 @@
 pragma solidity ^0.7.5;
 
 interface IStakingHelper {
-    function stake( uint256 _amount, address _to, bool _isFee ) external;
+    function stake( uint256 _amount, address _to ) external;
 }

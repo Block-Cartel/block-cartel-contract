@@ -3,7 +3,7 @@ pragma solidity ^0.7.5;
 
 import "./libraries/SafeMath.sol";
 import "./libraries/Address.sol";
-import "../interfaces/IERC20.sol";
+import "./interfaces/IERC20.sol";
 import "./interfaces/IBLOCKS.sol";
 import "./interfaces/IERC20Permit.sol";
 
@@ -71,7 +71,7 @@ contract BLOCKS is IERC20, ERC20Permit, IBLOCKS, BLOCKSAccessControlled {
         address account_,
         uint256 amount_
     ) internal {
-        uint256 decreasedAllowance = allowance(account_, msg.sender).sub(amount_, "ERC20: burn amount exceeds allowance");
+        uint256 decreasedAllowance_ = allowance(account_, msg.sender).sub(amount_, "ERC20: burn amount exceeds allowance");
         _approve(account_, msg.sender, decreasedAllowance_);
         _burn(account_, amount_);
     }
@@ -80,7 +80,7 @@ contract BLOCKS is IERC20, ERC20Permit, IBLOCKS, BLOCKSAccessControlled {
         address sender,
         address recipient,
         uint256 amount
-    ) internal virtual checkWithdrwalAddressTime(msg.sender, amount){
+    ) internal virtual override checkWithdrwalAddressTime(msg.sender, amount){
         require(sender != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
 

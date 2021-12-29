@@ -24,7 +24,7 @@ contract StakingHelper {
 
     function stake(
         uint256 _amount,
-        address recipient,
+        address recipient
     ) external {
         IERC20(BLOCKS).transferFrom(msg.sender, address(this), _amount);
         IERC20(BLOCKS).approve(staking, _amount);
