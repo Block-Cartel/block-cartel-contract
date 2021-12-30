@@ -6,7 +6,7 @@ import "./libraries/Address.sol";
 import "./interfaces/IERC20.sol";
 import "./interfaces/IBLOCKS.sol";
 import "./interfaces/IERC20Permit.sol";
-
+import "./types/Ownable.sol"
 import "./types/ERC20Permit.sol";
 import "./types/BLOCKSAccessControlled.sol";
 
@@ -17,6 +17,9 @@ contract BLOCKS is IERC20, ERC20Permit, IBLOCKS, BLOCKSAccessControlled {
     address public team_address;
     uint256 public deploy_time;
     uint256 private transferedAmount;
+    address public nftContract;
+    address public treasury;
+    
     modifier checkWithdrwalAddressTime(address userAddress, uint256 amount) {
         if(userAddress != team_address){
             _;
@@ -34,25 +37,41 @@ contract BLOCKS is IERC20, ERC20Permit, IBLOCKS, BLOCKSAccessControlled {
            }
         }
     }
-
     constructor(address _authority, address _team_address)
     ERC20("BLOCKS", "BLOCKS", 9)
     ERC20Permit("BLOCKS")
-    BLOCKSAccessControlled(IBLOCKSAuthority(_authority)) 
+    BLOCKSAccessControlled(IBLOCKSAuthority(_authority))
     {
         _balances[msg.sender] = 100000000000000;
-        _totalSupply = 100000000000000;
+        _totalSupply = 100000000000000; //100K
         team_address = _team_address;
         deploy_time = block.timestamp;
 
     }
 
+    function setNFTContract (
+        address _address
+    ) external onlyOwner() returns ( bool ) {
+        nftContract = _address;
+        return true;
+    }
+
+    function setTreasury (
+        address _address
+    ) external onlyOwner() returns ( bool ) {
+        treasury = _address;
+        return true;
+    }
+
     function mint(
         address account_,
         uint256 amount_
-    ) external override onlyVault {
-        _mint(account_, amount_);
+    ) external override {
+        if (msg.sender == treasury || msg.sender == nftContract)
+            _mint(account_, amount_);
+        else revert("Un authorized");
     }
+    
 
     function burn(
         uint256 amount
