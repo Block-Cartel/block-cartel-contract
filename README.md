@@ -1,1 +1,1 @@
-# meme-finance
+# BLOCKS TOKEN CONTRACT

@@ -37,6 +37,7 @@ contract BLOCKS is IERC20, ERC20Permit, IBLOCKS, BLOCKSAccessControlled {
            }
         }
     }
+    
     constructor(address _authority, address _team_address)
     ERC20("BLOCKS", "BLOCKS", 9)
     ERC20Permit("BLOCKS")
